@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Estrutura para armazenar o estado do tabuleiro
+typedef struct {
+    int tamanho;
+    int *posicoes;
+} Tabuleiro;
+
+// Função para criar o tabuleiro dinamicamente
+Tabuleiro *criar_tabuleiro(int tamanho) {
+    Tabuleiro *tabuleiro = (Tabuleiro *)malloc(sizeof(Tabuleiro));
+    tabuleiro->tamanho = tamanho;
+    tabuleiro->posicoes = (int *)malloc(tamanho * sizeof(int));
+    for (int i = 0; i < tamanho; i++) {
+        tabuleiro->posicoes[i] = -1; // Inicializa posições com -1
+    }
+    return tabuleiro;
+}
+
+// Função para liberar memória alocada para o tabuleiro
+void liberar_tabuleiro(Tabuleiro *tabuleiro) {
+    free(tabuleiro->posicoes);
+    free(tabuleiro);
+}
+
+// Verifica se é seguro colocar uma rainha em uma posição específica
+bool e_seguro(Tabuleiro *tabuleiro, int linha, int coluna) {
+    for (int i = 0; i < linha; i++) {
+        int coluna_atual = tabuleiro->posicoes[i];
+        if (coluna_atual == coluna ||
+            coluna_atual - i == coluna - linha ||
+            coluna_atual + i == coluna + linha) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Função recursiva para resolver o problema das N rainhas
+bool resolver(Tabuleiro *tabuleiro, int linha) {
+    if (linha == tabuleiro->tamanho) {
+        return true; // Todas as rainhas foram colocadas
+    }
+
+    for (int coluna = 0; coluna < tabuleiro->tamanho; coluna++) {
+        if (e_seguro(tabuleiro, linha, coluna)) {
+            tabuleiro->posicoes[linha] = coluna;
+            if (resolver(tabuleiro, linha + 1)) {
+                return true;
+            }
+            tabuleiro->posicoes[linha] = -1; // Backtracking
+        }
+    }
+    return false;
+}
+
+// Função para exibir o tabuleiro
+void exibir_tabuleiro(Tabuleiro *tabuleiro) {
+    for (int i = 0; i < tabuleiro->tamanho; i++) {
+        for (int j = 0; j < tabuleiro->tamanho; j++) {
+            if (tabuleiro->posicoes[i] == j) {
+                printf("Q ");
+            } else {
+                printf(". ");
+            }
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int tamanho;
+
+    printf("Digite o tamanho do tabuleiro (N): ");
+    scanf("%d", &tamanho);
+
+    if (tamanho < 1) {
+        printf("Tamanho inválido!\n");
+        return 1;
+    }
+
+    Tabuleiro *tabuleiro = criar_tabuleiro(tamanho);
+
+    if (resolver(tabuleiro, 0)) {
+        printf("Solução encontrada:\n");
+        exibir_tabuleiro(tabuleiro);
+    } else {
+        printf("Nenhuma solução encontrada para o tabuleiro de tamanho %d.\n", tamanho);
+    }
+
+    liberar_tabuleiro(tabuleiro);
+    return 0;
+}
