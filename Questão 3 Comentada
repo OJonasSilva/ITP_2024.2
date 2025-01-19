@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Estrutura que representa um tabuleiro de N-rainhas
+typedef struct {
+    int tamanho; // Tamanho do tabuleiro (N)
+    int *posicoes; // Vetor que armazena a posição das rainhas em cada linha
+} Tabuleiro;
+
+// Função para criar e inicializar um tabuleiro
+Tabuleiro *criar_tabuleiro(int tamanho) {
+    Tabuleiro *tabuleiro = (Tabuleiro *)malloc(sizeof(Tabuleiro)); // Aloca memória para o tabuleiro
+    tabuleiro->tamanho = tamanho;
+    tabuleiro->posicoes = (int *)malloc(tamanho * sizeof(int)); // Aloca memória para as posições das rainhas
+    for (int i = 0; i < tamanho; i++) {
+        tabuleiro->posicoes[i] = -1; // Inicializa todas as posições como -1 (vazias)
+    }
+    return tabuleiro;
+}
+
+// Função para liberar a memória alocada para um tabuleiro
+void liberar_tabuleiro(Tabuleiro *tabuleiro) {
+    free(tabuleiro->posicoes); // Libera o vetor de posições
+    free(tabuleiro); // Libera a estrutura do tabuleiro
+}
+
+// Função que verifica se uma posição é segura para colocar uma rainha
+bool e_seguro(Tabuleiro *tabuleiro, int linha, int coluna) {
+    for (int i = 0; i < linha; i++) {
+        int coluna_atual = tabuleiro->posicoes[i];
+        // Verifica se há conflito na mesma coluna ou nas diagonais
+        if (coluna_atual == coluna ||
+            coluna_atual - i == coluna - linha ||
+            coluna_atual + i == coluna + linha) {
+            return false;
+        }
+    }
+    return true; // Retorna true se a posição for segura
+}
+
+// Função recursiva para contar as soluções do problema das N-rainhas
+int contar_solucoes(Tabuleiro *tabuleiro, int linha) {
+    if (linha == tabuleiro->tamanho) { // Caso base: todas as rainhas foram posicionadas
+        return 1;
+    }
+    int count = 0;
+    for (int coluna = 0; coluna < tabuleiro->tamanho; coluna++) {
+        if (e_seguro(tabuleiro, linha, coluna)) { // Verifica se é seguro colocar a rainha na posição
+            tabuleiro->posicoes[linha] = coluna; // Coloca a rainha na posição
+            count += contar_solucoes(tabuleiro, linha + 1); // Chama recursivamente para a próxima linha
+            tabuleiro->posicoes[linha] = -1; // Remove a rainha (backtracking)
+        }
+    }
+    return count; // Retorna o número total de soluções encontradas
+}
+
+// Função para exibir os resultados e um gráfico simples no terminal
+void exibir_resultados(int tamanho_max) {
+    printf("Tamanho\tQuantidade de Solucoes\n");
+    for (int tamanho = 1; tamanho <= tamanho_max; tamanho++) {
+        Tabuleiro *tabuleiro = criar_tabuleiro(tamanho); // Cria o tabuleiro
+        int solucoes = contar_solucoes(tabuleiro, 0); // Conta as soluções para o tamanho atual
+        printf("%d\t%d\n", tamanho, solucoes); // Exibe o tamanho do tabuleiro e o número de soluções
+        printf("%d: ", tamanho);
+        int escala = 1; // Define a escala fixa para o gráfico
+        for (int i = 0; i < solucoes / escala; i++) {
+            printf("*"); // Exibe os asteriscos representando o número de soluções
+        }
+        printf("\n");
+        liberar_tabuleiro(tabuleiro); // Libera a memória do tabuleiro
+    }
+}
+
+int main() {
+    int tamanho_max;
+    printf("Digite o tamanho máximo do tabuleiro (N): "); // Solicita o tamanho máximo do tabuleiro ao usuário
+    scanf("%d", &tamanho_max);
+
+    if (tamanho_max < 1) { // Verifica se o tamanho é inválido
+        printf("Tamanho inválido!\n");
+        return 1;
+    }
+
+    exibir_resultados(tamanho_max); // Exibe os resultados para os tamanhos de 1 a N
+    return 0;
+}
