@@ -1,1 +1,80 @@
-Questão 3
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+typedef struct {
+    int tamanho;
+    int *posicoes;
+} Tabuleiro;
+
+Tabuleiro *criar_tabuleiro(int tamanho) {
+    Tabuleiro *tabuleiro = (Tabuleiro *)malloc(sizeof(Tabuleiro));
+    tabuleiro->tamanho = tamanho;
+    tabuleiro->posicoes = (int *)malloc(tamanho * sizeof(int));
+    for (int i = 0; i < tamanho; i++) {
+        tabuleiro->posicoes[i] = -1;
+    }
+    return tabuleiro;
+}
+
+void liberar_tabuleiro(Tabuleiro *tabuleiro) {
+    free(tabuleiro->posicoes);
+    free(tabuleiro);
+}
+
+bool e_seguro(Tabuleiro *tabuleiro, int linha, int coluna) {
+    for (int i = 0; i < linha; i++) {
+        int coluna_atual = tabuleiro->posicoes[i];
+        if (coluna_atual == coluna ||
+            coluna_atual - i == coluna - linha ||
+            coluna_atual + i == coluna + linha) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int contar_solucoes(Tabuleiro *tabuleiro, int linha) {
+    if (linha == tabuleiro->tamanho) {
+        return 1;
+    }
+    int count = 0;
+    for (int coluna = 0; coluna < tabuleiro->tamanho; coluna++) {
+        if (e_seguro(tabuleiro, linha, coluna)) {
+            tabuleiro->posicoes[linha] = coluna;
+            count += contar_solucoes(tabuleiro, linha + 1);
+            tabuleiro->posicoes[linha] = -1;
+        }
+    }
+    return count;
+}
+
+void exibir_resultados(int tamanho_max) {
+    printf("Tamanho\tQuantidade de Solucoes\n");
+    for (int tamanho = 1; tamanho <= tamanho_max; tamanho++) {
+        Tabuleiro *tabuleiro = criar_tabuleiro(tamanho);
+        int solucoes = contar_solucoes(tabuleiro, 0);
+        printf("%d\t%d\n", tamanho, solucoes);
+        printf("%d: ", tamanho);
+        int escala = 1;
+        for (int i = 0; i < solucoes / escala; i++) {
+            printf("*");
+        }
+        printf("\n");
+        liberar_tabuleiro(tabuleiro);
+    }
+}
+
+int main() {
+    int tamanho_max;
+    printf("Digite o tamanho máximo do tabuleiro (N): ");
+    scanf("%d", &tamanho_max);
+
+    if (tamanho_max < 1) {
+        printf("Tamanho inválido!\n");
+        return 1;
+    }
+
+    exibir_resultados(tamanho_max);
+    return 0;
+}
